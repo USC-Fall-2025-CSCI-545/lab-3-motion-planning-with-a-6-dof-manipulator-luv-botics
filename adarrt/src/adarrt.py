@@ -106,11 +106,16 @@ class AdaRRT():
         """
         for k in range(self.max_iter):
             # FILL in your code here
+            random_sample = self._get_random_sample()
+            nn = self._get_nearest_neighbor(random_sample)
+            if nn is None:
+                print("No nearest neighbor in the random sample :\n{0}".format(random_sample))
+                continue
+            new_node = self._extend_sample(random_sample, nn)
 
             if new_node and self._check_for_completion(new_node):
                 # FILL in your code here
-
-                return path
+                return self._trace_path_from_start(new_node)
 
         print("Failed to find path from {0} to {1} after {2} iterations!".format(
             self.start.state, self.goal.state, self.max_iter))
@@ -135,6 +140,14 @@ class AdaRRT():
         :returns: A Node object for the closest neighbor.
         """
         # FILL in your code here
+        minimum_distance = float('inf')
+        nearest_neighbor = None
+        for node in self.start:
+            distance = np.linalg.norm(node.state - sample)
+            if distance < minimum_distance:
+                minimum_distance = distance
+                nearest_neighbor = node
+        return nearest_neighbor
 
     def _extend_sample(self, sample, neighbor):
         """
