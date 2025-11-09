@@ -123,6 +123,8 @@ class AdaRRT():
             space.
         """
         # FILL in your code here
+        # Randomly sample each joint value within its limits
+        return np.random.uniform(self.joint_lower_limits, self.joint_upper_limits)
 
     def _get_nearest_neighbor(self, sample):
         """
@@ -146,6 +148,26 @@ class AdaRRT():
         :returns: The new Node object. On failure (collision), returns None.
         """
         # FILL in your code here
+        # Compute direction vector from neighbor to the random sample
+        direction = sample - neighbor.state
+        distance = np.linalg.norm(direction)
+        if distance == 0:
+            return None  # sample exactly same as neighbor => nothing to extend
+
+        # Normalize direction and step forward by step_size
+        direction = direction / distance
+        new_state = neighbor.state + self.step_size * direction
+
+        # Use clip() let joint angles stay within joint limits
+        new_state = np.clip(new_state, self.joint_lower_limits, self.joint_upper_limits)
+        
+        # Check for collision before adding new node
+        if self._check_for_collision(new_state):
+            return None  # invalid extension (will collision)
+
+        # Add the new node as a child of the neighbor node
+        new_node = neighbor.add_child(new_state)
+        return new_node
 
     def _check_for_completion(self, node):
         """
@@ -155,6 +177,17 @@ class AdaRRT():
         :returns: Boolean indicating node is close enough for completion.
         """
         # FILL in your code here
+        # compute distance between current node and goal
+        distance = np.linalg.norm(node.state - self.goal.state)
+
+        # check if distance is within goal threshold
+        if distance <= self.goal_precision:
+            # the node is close enough to the goal => stop searching
+            return True
+        else:
+            # still too far from the goal => keep expanding the tree
+            return False
+
 
     def _trace_path_from_start(self, node=None):
         """
@@ -166,6 +199,22 @@ class AdaRRT():
             ending at the goal state.
         """
         # FILL in your code here
+        # If no node is given, Defaults to self.goal
+        if node is None:
+            node = self.goal
+        path = []
+        current = node
+
+        # Follow parent links back to the start and record each state
+        while current is not None:
+            path.append(current.state)
+            current = current.parent
+        
+        # Reverse list so it begin at the start state and end at the goal state.
+        path.reverse()
+        return path
+
+
 
     def _check_for_collision(self, sample):
         """
