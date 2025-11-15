@@ -107,6 +107,7 @@ class AdaRRT():
         for k in range(self.max_iter):
             # FILL in your code here
             random_sample = self._get_random_sample()
+                         
             nn = self._get_nearest_neighbor(random_sample)
             if nn is None:
                 print("No nearest neighbor in the random sample :\n{0}".format(random_sample))
@@ -255,7 +256,7 @@ def main(is_sim):
     goalConfig = [-1.72, 4.44, 2.02, -2.04, 2.66, 1.39]
     delta = 0.25
     eps = 1.0
-
+    
     if is_sim:
         ada.set_positions(goalConfig)
     else:
@@ -308,7 +309,7 @@ def main(is_sim):
             waypoints.append((0.0 + i, waypoint))
 
         t0 = time.clock()
-        traj = ada.compute_joint_space_path(
+        traj = ada.compute_smooth_joint_space_path(
             ada.get_arm_state_space(), waypoints)
         t = time.clock() - t0
         print(str(t) + "seconds elapsed")
