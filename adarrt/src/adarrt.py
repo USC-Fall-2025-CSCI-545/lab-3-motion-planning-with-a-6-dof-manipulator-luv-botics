@@ -106,8 +106,17 @@ class AdaRRT():
         """
         for k in range(self.max_iter):
             # FILL in your code here
-            random_sample = self._get_random_sample()
-                         
+            # Number 3:
+            # random_sample = self._get_random_sample()
+
+            # Number 5: 
+            # 80% of time call _get_random_sample()
+            # 20% of time call _get_random_sample_near_goal()
+            if np.random.rand() < 0.2:
+                random_sample = self._get_random_sample_near_goal()
+            else:
+                random_sample = self._get_random_sample()
+
             nn = self._get_nearest_neighbor(random_sample)
             if nn is None:
                 print("No nearest neighbor in the random sample :\n{0}".format(random_sample))
@@ -131,6 +140,21 @@ class AdaRRT():
         # FILL in your code here
         # Randomly sample each joint value within its limits
         return np.random.uniform(self.joint_lower_limits, self.joint_upper_limits)
+    
+    def _get_random_sample_near_goal(self):
+        # generate a sample around the goal, within a distance of 0.05 along
+        # each axis of the search space 
+        # ** need to change the build method so it calls: 
+        # - _get_random_sample_near_goal() with probability 0.2 
+        # - _get_random_sample() with probability 0.8
+        # ** reduce epsilon to 0.2 
+
+        around_goal_noise = np.random.uniform(-0.05, 0.05, size=self.goal.state.shape)
+        around_goal_sample = self.goal.state + around_goal_noise
+
+        # use np.clip to ensure joint angles stay within limits
+        around_goal_sample = np.clip(around_goal_sample, self.joint_lower_limits, self.joint_upper_limits)
+        return around_goal_sample
 
     def _get_nearest_neighbor(self, sample):
         """
@@ -255,8 +279,8 @@ def main(is_sim):
     armHome = [-1.5, 3.22, 1.23, -2.19, 1.8, 1.2]
     goalConfig = [-1.72, 4.44, 2.02, -2.04, 2.66, 1.39]
     delta = 0.25
-    eps = 1.0
-    
+    eps = 0.2
+
     if is_sim:
         ada.set_positions(goalConfig)
     else:
